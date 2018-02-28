@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+# 
+# Copyright (C) 2017 - Massachusetts Institute of Technology (MIT) 
+# 
+# This program is free software: you can redistribute it and/or modify 
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or 
+# (at your option) any later version. 
+# 
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details. 
+# 
+# You should have received a copy of the GNU General Public License 
+# along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+
+import os
+import sys
+import optparse
+#try: 
+#    import Tkinter
+#    mpl_backend = "TkAgg"
+#except ImportError:
+#    mpl_backend = "Agg"
+mpl_backend = "MacOSX"
+import matplotlib
+matplotlib.use(mpl_backend)
+from matplotlib import pyplot as plt
+from matplotlib import gridspec
+import numpy.random
+
+DIR = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(DIR, '..'))
+
+import patools 
+from patools.util.imagescale import zscale
+
+from patools.util.dataio import readcolumn
+import numpy as np
+
+
+def cmd_parse(usage):
+    p = optparse.OptionParser(usage=usage)
+    p.add_option('--infile', '-i',  
+                 help='The file to read ra and dec coords')
+
+    p.add_option('--col-rd', '-r', default='2,3', 
+                 help='The column to read x and y coords')
+    p.add_option('--wcsfile', '-w', 
+                 help='the name of the wcsfile')
+    
+    options, arguments = p.parse_args()
+    
+    return [options, arguments]
+
+
+
+if __name__ == '__main__':
+    usage="""This is a script used for quick projection of wcs header 
+    """
+    options, arguments =  cmd_parse(usage)
+    catalog = options.infile
+    colrd = options.col_rd
+    colra = int(colrd.split(",")[0])
+    coldec = int(colrd.split(",")[1])
+    ra = []; readcolumn(ra, colra, catalog); ra=np.array(ra) 
+    dec = []; readcolumn(dec, coldec, catalog); dec=np.array(dec) 
+    wcsfile= options.wcsfile
+    if wcsfile.endswith(".wcs"):
+        w = wcs.WCS(wcsfile)
+    else:
+        import astropy
+        import astropy.wcs as wcs
+        from astropy.io import fits
+        hdulist = fits.open(wcsfile)
+        if len(hdulist) == 1:
+            w = wcs.WCS(hdulist[0])
+        if len(hdulist) == 3:
+            w = wcs.WCS(hdulist[1])
+    x, y = w.all_world2pix(ra, dec, 1)
+    x-=0.5
+    y-=0.5
+    for i in xrange(len(ra)):
+        print ra[i], dec[i], x[i], y[i]
+

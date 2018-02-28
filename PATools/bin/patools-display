@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+# 
+# Copyright (C) 2017 - Massachusetts Institute of Technology (MIT) 
+# 
+# This program is free software: you can redistribute it and/or modify 
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or 
+# (at your option) any later version. 
+# 
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details. 
+# 
+# You should have received a copy of the GNU General Public License 
+# along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+
+import os
+import sys
+import optparse
+#try: 
+#    import Tkinter
+#    mpl_backend = "TkAgg"
+#except ImportError:
+#    mpl_backend = "Agg"
+mpl_backend = "MacOSX"
+import matplotlib
+matplotlib.use(mpl_backend)
+from matplotlib import pyplot as plt
+from matplotlib import gridspec
+import numpy.random
+
+DIR = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(DIR, '..'))
+
+import patools 
+from patools.util.imagescale import zscale
+
+from patools.util.dataio import readcolumn
+import numpy as np
+
+
+def cmd_parse(usage):
+    p = optparse.OptionParser(usage=usage)
+    p.add_option('--infile', '-i', default=None, 
+                 help='The file to read x and y coords')
+
+    p.add_option('--col-xy', '-x', default='2,3', 
+                 help='The column to read x and y coords')
+    p.add_option('--size', '-s', default=30, action='store_true',
+                 help='the size of the circle')
+    
+    options, arguments = p.parse_args()
+    
+    return [options, arguments]
+
+
+
+if __name__ == '__main__':
+    usage="""This is a script used to display fits image since ds9 broke down on mac for the ETE6 images
+    """
+    fitsfile = sys.argv[1]
+    options, arguments =  cmd_parse(usage)
+    xylist = options.infile
+    if not xylist is None:
+        colxy = options.col_xy
+        colx = int(colxy.split(",")[0])
+        coly = int(colxy.split(",")[1])
+        xcoords = []; readcolumn(xcoords, colx, xylist); xcoords=np.array(xcoords)
+        ycoords = []; readcolumn(ycoords, coly, xylist); ycoords=np.array(ycoords)
+    import pyfits as pyf
+    with pyf.open(fitsfile) as hdulist:
+        fig = plt.figure(figsize=[16, 8])
+        nrow=3
+        ncol=6
+        gs = gridspec.GridSpec(nrow, ncol)
+        ax1 = fig.add_subplot(gs[0:3, 0:3])
+        if len(hdulist) == 3:
+            data = hdulist[1].data
+        if len(hdulist) == 1:
+            data = hdulist[0].data
+
+        vmin, vmax = zscale(data) 
+        cbar = ax1.imshow(data, cmap='Greys_r', vmin=vmin, vmax=vmax)
+        if not xylist is None:
+            ax1.scatter(xcoords, ycoords, s=options.size, marker='o', edgecolor='r', facecolor='none')
+        plt.colorbar(cbar)
+        for i in xrange(3):
+            for j in xrange(3):
+                ax_i = fig.add_subplot(gs[0+i,3+j])
+                xsize = 50
+                ysize = 50
+                xinit = int((i+0.5)*np.floor(data.shape[0]/3))-xsize/2
+                yinit = int((j+0.5)*np.floor(data.shape[1]/3))-ysize/2
+                ax_i.imshow(data[xinit:xinit+xsize, yinit:yinit+ysize], cmap='Greys_r', vmin=vmin, vmax=vmax)
+                if not xylist is None:
+                    ax_i.scatter(xcoords-yinit-0.5, ycoords-xinit-0.5, s=options.size, marker='o', edgecolor='r', facecolor='none')
+                
+                ax_i.set_xlim([0,xsize])
+                ax_i.set_ylim([0,ysize])
+        plt.subplots_adjust(top=0.96, bottom=0.06, hspace=0.1, left=0.125, right=0.98)
+        plt.show()
+
