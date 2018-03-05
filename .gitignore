@@ -5,4 +5,7 @@
 *.fistar
 *.fiphot
 *.wcs
-*.xyls
+*xyls
+*.trans
+*.log
+catalog*
