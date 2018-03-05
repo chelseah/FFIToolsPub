@@ -42,6 +42,8 @@ Display a fits file and project a star list based on its x, y coordinates (tess2
 patools-display tess2019129080826-4-4-0016-s_ffic.fits -x 2,3 -i tess2019129080826-4-4-0016-s_ffic.fistar
 ```
 
+The following steps need to be operated in sequences: 
+
 source extraction (in etc directory): 
 
 ```
@@ -52,5 +54,11 @@ astrometry
 
 ```
 patools-sampler astrometry -c ETE6-cam4-ccd4.cfg --debug --logfile - 
+```
+
+photometry
+
+```
+patools-sampler phot -c ETE6-cam4-ccd4.cfg --debug --logfile -
 ```
 
