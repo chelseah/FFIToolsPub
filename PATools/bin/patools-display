@@ -68,8 +68,9 @@ if __name__ == '__main__':
         coly = int(colxy.split(",")[1])
         xcoords = []; readcolumn(xcoords, colx, xylist); xcoords=np.array(xcoords)
         ycoords = []; readcolumn(ycoords, coly, xylist); ycoords=np.array(ycoords)
-    import pyfits as pyf
-    with pyf.open(fitsfile) as hdulist:
+    import astropy
+    from astropy.io import fits 
+    with fits.open(fitsfile) as hdulist:
         fig = plt.figure(figsize=[16, 8])
         nrow=3
         ncol=6
