@@ -8,7 +8,8 @@ external softwares:
 
 * fitsh 0.9.2 
 
-* vartools 1.33
+* vartools 1.33 (http://www.astro.princeton.edu/~jhartman/vartools.html)
+see https://arxiv.org/pdf/1605.06811.pdf for reference.
 
 python modules:
 
