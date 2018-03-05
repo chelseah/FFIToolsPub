@@ -67,4 +67,5 @@ patools-sampler phot -c ETE6-cam4-ccd4.cfg --debug --logfile -
 Chelsea Huang
 
 Andras Pal
+
 ...
