@@ -18,12 +18,12 @@
 import os
 import sys
 import optparse
-#try: 
-#    import Tkinter
-#    mpl_backend = "TkAgg"
-#except ImportError:
-#    mpl_backend = "Agg"
-mpl_backend = "MacOSX"
+try: 
+    import Tkinter
+    mpl_backend = "TkAgg"
+except ImportError:
+    mpl_backend = "Agg"
+#mpl_backend = "MacOSX"
 import matplotlib
 matplotlib.use(mpl_backend)
 from matplotlib import pyplot as plt
