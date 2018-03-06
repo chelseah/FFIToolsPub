@@ -82,7 +82,7 @@ class VtBls(ConfigurableObject):
                 paramdics.append({})
                 newline = result.split()[1 + i * VtBls.LENGTH:(1 + VtBls.LENGTH * (i + 1))]
                 for key, val in zip(newheader, newline):
-                    paramdics[i][key.lstrip("BLS_").rstrip("_1_0")] = eval(val)
+                    paramdics[i][key.split('_')[1]] = eval(val)
             blsanal = paramdics
             blsfile = os.path.join(blspath, os.path.basename(lcfile.name)+'.bls')
             blsmodelfile = os.path.join(blspath, os.path.basename(lcfile.name)+'.bls.model')

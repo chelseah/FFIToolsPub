@@ -86,6 +86,15 @@ if __name__ == '__main__':
         lcfile.set_cols(coljd=coljd, colmag=colmag, colmagerr=colmagerr)
         
         blsanal, blsfile, blsmodelfile = blsengin(lcfile, replace=True)
+        print "### BLS matrix ###"
+        for i in xrange(len(blsanal)):
+            if i==0:
+                for key in blsanal[i]:
+                    print key,
+                print ""
+            for key in blsanal[i]:
+                print blsanal[i][key],
+            print ""
         import matplotlib
         from matplotlib import pyplot as plt
         import numpy as np
