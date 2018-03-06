@@ -69,6 +69,37 @@ bls (in LCTools/etc directory):
 lctools-sampler BLS -i data/Kepler-6b.lc -c example.cfg -x 1,2,3
 ```
 
+use bls as a module 
+```
+import lctools
+from lctools.lightcurve import SimpleLightCurve as Lc
+from lctools.bls import VtBls
+from lctools.util.configurable import Configuration
+
+cfg = Configuration(config_file)
+blsengin = VtBls(cfg)
+lcfile = Lc(name=infile)
+lcfile.set_cols(coljd=coljd, colmag=colmag, colmagerr=colmagerr)
+blsanal, blsfile, blsmodelfile = blsengin(lcfile, replace=True)
+```
+
+Input:
+
+infile is a ascii light curve file with time column (coljd), magnitude column (colmag) and magnitude error column (colmagerr, can be filled with ones). 
+
+config_file is a configuration file for all the BLS parameters, see example.cfg under LCTools/etc as an example. 
+
+Output: 
+
+blsanal is an array of dictionaries, each dictionary contains relevent matrix for a BLS peak (out put $peaknum strongest peaks). 
+
+blsfile is the BLS spectrum from the calculation. 
+
+blsmodelfile is the light curve phase folded using the epheriemes and period of the first BLS peak in blsanal. 
+
+
+
+
 # Authors
 
 Chelsea Huang
