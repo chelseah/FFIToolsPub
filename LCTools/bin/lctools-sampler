@@ -1,0 +1,117 @@
+#!/usr/bin/env python 
+# Copyright (C) 2017 - Massachusetts Institute of Technology (MIT) 
+# 
+# This program is free software: you can redistribute it and/or modify 
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or 
+# (at your option) any later version. 
+# 
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details. 
+# 
+# You should have received a copy of the GNU General Public License 
+# along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+
+# This is a tool to detrend light curves
+
+
+import ConfigParser
+import optparse
+import logging
+import sys
+import os
+
+DIR = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(DIR, '..'))
+
+import lctools
+from lctools.lightcurve import SimpleLightCurve as Lc
+from lctools.bls import VtBls 
+from lctools.util.configurable import Configuration
+
+def cmd_parse():
+    p = optparse.OptionParser()
+    p.add_option('--version', action="store_true", help="dislay the version ")
+    p.add_option('--logfile', default='example.log', 
+                 help='The destination of the log file, - outputs the logs to stdout')
+    
+    p.add_option('--config', '-c', dest="config_file", type=str, metavar="CONFIG_FILE", help='the filename of configuration file that contains '
+                      'contains parameter settings(Optional)')
+    p.add_option('--cols', '-x',  default="1,2,3", help='The column numbers for time, magnitude and magnitude error')
+    p.add_option('--infile', '-i', help='the input light curve file to run BLS on')
+    p.add_option('--debug', action='store_true', help='output debug level message')
+    p.add_option('--plot-to-file', action='store_true', help='output figures to a png file')
+    options, arguments = p.parse_args()
+    
+    return [options, arguments]
+
+def get_default_keys():
+    detrend_dict = dict({'inlist':'', 'coljd':1, 'colmag':2, 'indir':''})
+    return detrend_dict
+ 
+
+
+
+if __name__ == '__main__':
+    usage = """%prog action [options]
+    Actions: 
+        detrend - detrend light curve of one star.
+        BLS - run bls on the light curve of one star.
+        DFT - run dft on the light curve of one star.
+        candsum - run candidate selection summary on one star.
+    """
+
+    options, args = cmd_parse()
+     
+      
+
+
+    if options.version:
+        print "lctool version %s" % lctools.__version__
+        sys.exit(0)
+    lctools.setup_logging(debug=options.debug, filename=options.logfile)
+    logger = logging.getLogger(__name__)
+    cfg = Configuration(options.config_file)
+    
+    if 'BLS' in args:
+        
+        # configure the blsengin
+        blsengin = VtBls(cfg)
+        coljd = options.cols.split(",")[0] 
+        colmag = options.cols.split(",")[1] 
+        colmagerr = options.cols.split(",")[2] 
+        lcfile = Lc(name=options.infile)
+        lcfile.set_cols(coljd=coljd, colmag=colmag, colmagerr=colmagerr)
+        
+        blsanal, blsfile, blsmodelfile = blsengin(lcfile, replace=True)
+        import matplotlib
+        from matplotlib import pyplot as plt
+        import numpy as np
+        blsspec = np.loadtxt(blsfile)
+        period = blsspec[:,0]
+        snr = blsspec[:,1]
+        fig = plt.figure()
+        ax1 = fig.add_subplot(211)
+        ax1.plot(period, snr, 'k') 
+        ax1.vlines(blsanal[0]['Period'], 0, np.max(snr), color='r', linewidth=2)
+        ax1.set_ylabel("BLS significance")
+        ax1.set_xlabel("Period (day)")
+        blsmodel = np.loadtxt(blsmodelfile)
+        ax2 = fig.add_subplot(212)
+        phase = blsmodel[:, 4] 
+        index = phase>0.5
+        phase[index]-=1
+        ax2.plot(phase, blsmodel[:,1], '.', label="data")
+        ax2.plot(phase, blsmodel[:,2], '+', label="BLS model")
+        ax2.set_xlabel("Phase")
+        ax2.set_ylabel("Relative Magnitude")
+        ax2.legend()
+        plt.tight_layout()
+        if options.plot_to_file:
+            plt.savefig("bls.png")
+        else:
+            plt.show()
+
+
